@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# --------------------------------------------------------------------
+# Script: empty_cells
+# Usage: ./empty_cells bgg_dataset.txt ";"
+# Description: Counts number of empty cells per column based on delimiter
+# Author: Dhanyavi Goti
+# --------------------------------------------------------------------
+
+
+if [[ $# -ne 2 ]]; then
+  echo "Usage: $0 <file> <separator>"
+  exit 1
+fi
+
+file="$1"
+sep="$2"
+
+awk -v FS="$sep" '
+# Function to trim leading/trailing spaces
+function trim(str) {
+  gsub(/^[ \t\r\n]+|[ \t\r\n]+$/, "", str)
+  return str
+}
+
+NR == 1 {
+  for (i = 1; i <= NF; i++) {
+    header[i] = trim($i)
+    count[i] = 0
+  }
+  next
+}
+
+{
+  for (i = 1; i <= length(header); i++) {
+    if (i > NF || trim($i) == "") {
+      count[i]++
+    }
+  }
+}
+
+END {
+  for (i = 1; i <= length(header); i++) {
+    printf "%s: %d\n", header[i], count[i]
+  }
+}
+' "$file"
+
