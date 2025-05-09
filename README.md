@@ -43,12 +43,12 @@ This project includes a `.git` repository to demonstrate proper version control 
 
 3. **Step 2 – Clean the Dataset**
     ```bash
-    ./preprocess bgg_dataset.txt > cleaned_dataset.tsv
+    ./preprocess bgg_dataset.txt > bgg_dataset.tsv
     ```
 
 4. **Step 3 – Analyze the Cleaned Data**
     ```bash
-    ./analysis cleaned_dataset.tsv
+    ./analysis bgg_dataset.tsv
     ```
 
 
