@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # --------------------------------------------------------------------
-# Script: empty_cells
+# Script: analysis
 # Usage: ./analysis cleaned_dataset.tsv
 # Description: Analyzes the cleaned board games dataset to answer four key questions:
 #   1. What is the most popular game mechanic?
