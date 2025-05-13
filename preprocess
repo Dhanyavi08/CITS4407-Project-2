@@ -1,66 +1,93 @@
 #!/usr/bin/env bash
 
-# Usage: ./preprocess bgg_dataset.txt > cleaned_dataset.tsv
+# --------------------------------------------------------------------
+# Script: preprocess
+# Usage: ./preprocess bgg_dataset.txt > bgg_dataset.tsv
+# Description: Cleans the board games dataset by:
+#   - Converting semicolons to tabs
+#   - Normalizing line endings
+#   - Replacing comma decimal points with dot
+#   - Removing non-ASCII characters
+#   - Generating unique /ID values for rows with missing IDs
+#
+# Author: Dhanyavi Goti[24096172]
+# --------------------------------------------------------------------
 
-
+# Argument check 
 if [[ $# -ne 1 ]]; then
   echo "Usage: $0 <input_file>"
   exit 1
 fi
 
-input="$1"
-if [[ ! -f "$input" ]]; then
-  echo "Error: File not found: $input"
+input_file="$1"
+
+if [[ ! -f "$input_file" ]]; then
+  echo "Error: File not found: $input_file"
   exit 1
 fi
 
-# Step 1–4: Normalize line endings, convert separator, fix decimals, remove non-ASCII
+# Step 1–4: Clean formatting 
+# - Remove Windows carriage returns
+# - Convert semicolons to tabs
+# - Replace decimal commas with dots
+# - Remove non-ASCII characters
 tmp_cleaned=$(mktemp)
-tr -d '\r' < "$input" | \
+
+tr -d '\r' < "$input_file" | \
   sed 's/;/\t/g' | \
   sed 's/\([0-9]\),\([0-9]\)/\1.\2/g' | \
   LC_ALL=C tr -cd '\11\12\15\40-\176\n' > "$tmp_cleaned"
 
-# Step 5: Replace missing /ID values
+# Step 5: Fill missing /ID values 
 awk -F'\t' '
 BEGIN {
   OFS = "\t"
 }
+
+# Store column headers and locate /ID column
 NR == 1 {
-  for (i = 1; i <= NF; i++) {
-    header[i] = $i
-    if ($i == "/ID") id_col = i
+  for (col = 1; col <= NF; col++) {
+    headers[col] = $col
+    if ($col == "/ID") id_col = col
   }
   print
   next
 }
+
+# Store all data rows and find the max existing ID
 {
-  line[NR] = $0
-  for (i = 1; i <= NF; i++) {
-    field[NR, i] = $i
+  full_line[NR] = $0
+  for (col = 1; col <= NF; col++) {
+    fields[NR, col] = $col
   }
-  if ($id_col ~ /^[0-9]+$/) {
-    if ($id_col + 0 > max_id) {
-      max_id = $id_col + 0
-    }
+
+  if ($id_col ~ /^[0-9]+$/ && $id_col + 0 > max_id) {
+    max_id = $id_col + 0
   }
-  total = NR
+
+  total_rows = NR
 }
+
 END {
   new_id = max_id + 1
-  for (r = 2; r <= total; r++) {
-    if (field[r, id_col] == "") {
-      field[r, id_col] = new_id++
+
+  for (row = 2; row <= total_rows; row++) {
+    # If ID field is empty, assign a new unique ID
+    if (fields[row, id_col] == "") {
+      fields[row, id_col] = new_id++
     }
-    for (i = 1; i <= length(header); i++) {
-      printf "%s", field[r, i]
-      if (i < length(header)) printf OFS
+
+    # Print the cleaned row
+    for (col = 1; col <= length(headers); col++) {
+      printf "%s", fields[row, col]
+      if (col < length(headers)) {
+        printf OFS
+      }
     }
     printf "\n"
   }
 }
 ' "$tmp_cleaned"
 
-# Cleanup
+#  Cleanup 
 rm "$tmp_cleaned"
-

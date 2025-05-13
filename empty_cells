@@ -4,45 +4,58 @@
 # Script: empty_cells
 # Usage: ./empty_cells bgg_dataset.txt ";"
 # Description: Counts number of empty cells per column based on delimiter
-# Author: Dhanyavi Goti
+# Author: Dhanyavi Goti[24096172]
 # --------------------------------------------------------------------
 
 
+# Check for correct number of arguments
 if [[ $# -ne 2 ]]; then
   echo "Usage: $0 <file> <separator>"
   exit 1
 fi
 
-file="$1"
-sep="$2"
+input_file="$1"
+separator="$2"
 
-awk -v FS="$sep" '
-# Function to trim leading/trailing spaces
+# Process the file using awk
+awk -v FS="$separator" '
+
+# Helper function: trim()
+# Removes leading/trailing whitespace from a string.
+
 function trim(str) {
   gsub(/^[ \t\r\n]+|[ \t\r\n]+$/, "", str)
   return str
 }
 
+
+# Header line: store column names and initialize counts
+
 NR == 1 {
-  for (i = 1; i <= NF; i++) {
-    header[i] = trim($i)
-    count[i] = 0
+  for (col = 1; col <= NF; col++) {
+    headers[col] = trim($col)
+    empty_count[col] = 0
   }
   next
 }
 
+
+# For each line: check each column for emptiness
+
 {
-  for (i = 1; i <= length(header); i++) {
-    if (i > NF || trim($i) == "") {
-      count[i]++
+  for (col = 1; col <= length(headers); col++) {
+    if (col > NF || trim($col) == "") {
+      empty_count[col]++
     }
   }
 }
 
+
+# Final output: print column name and empty count
+
 END {
-  for (i = 1; i <= length(header); i++) {
-    printf "%s: %d\n", header[i], count[i]
+  for (col = 1; col <= length(headers); col++) {
+    printf "%s: %d\n", headers[col], empty_count[col]
   }
 }
-' "$file"
-
+' "$input_file"
