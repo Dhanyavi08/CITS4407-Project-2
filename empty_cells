@@ -1,36 +1,26 @@
 #!/usr/bin/env bash
-
 # --------------------------------------------------------------------
 # Script: empty_cells
 # Usage: ./empty_cells bgg_dataset.txt ";"
 # Description: Counts number of empty cells per column based on delimiter
 # Author: Dhanyavi Goti[24096172]
 # --------------------------------------------------------------------
-
-
 # Check for correct number of arguments
 if [[ $# -ne 2 ]]; then
   echo "Usage: $0 <file> <separator>"
   exit 1
 fi
-
 input_file="$1"
 separator="$2"
-
 # Process the file using awk
 awk -v FS="$separator" '
-
 # Helper function: trim()
 # Removes leading/trailing whitespace from a string.
-
 function trim(str) {
   gsub(/^[ \t\r\n]+|[ \t\r\n]+$/, "", str)
   return str
 }
-
-
 # Header line: store column names and initialize counts
-
 NR == 1 {
   for (col = 1; col <= NF; col++) {
     headers[col] = trim($col)
@@ -38,10 +28,7 @@ NR == 1 {
   }
   next
 }
-
-
 # For each line: check each column for emptiness
-
 {
   for (col = 1; col <= length(headers); col++) {
     if (col > NF || trim($col) == "") {
@@ -49,10 +36,7 @@ NR == 1 {
     }
   }
 }
-
-
 # Final output: print column name and empty count
-
 END {
   for (col = 1; col <= length(headers); col++) {
     printf "%s: %d\n", headers[col], empty_count[col]

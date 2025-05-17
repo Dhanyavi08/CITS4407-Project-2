@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 # --------------------------------------------------------------------
 # Script: analysis
 # Usage: ./analysis cleaned_dataset.tsv
@@ -11,25 +10,19 @@
 #
 #   The script assumes the input file has been cleaned using `preprocess`,
 #   and is tab-separated with the required columns present.
-
 # Author: Dhanyavi Goti[24096172]
 # --------------------------------------------------------------------
-
-
 input="$1"
-
 # Anti-bugging: Check that a valid file was provided
 if [[ ! -f "$input" ]]; then
   echo "Usage: $0 <cleaned_dataset.tsv>"
   exit 1
 fi
-
 # Use awk to process the cleaned dataset and compute:
 # - Most frequent mechanics
 # - Most frequent domain
 # - Correlation between year and rating
 # - Correlation between complexity and rating
-
 awk -F'\t' '
 # First row: detect column indices
 NR==1 {
@@ -42,33 +35,28 @@ NR==1 {
   }
   next
 }
-
 {
   # Count mechanics frequency
   num_mechanics = split($mechanics_col, mechanics, /, */)
   for (i = 1; i <= num_mechanics; i++) {
     if (mechanics[i] != "") mechanics_freq[mechanics[i]]++
   }
-
   # Count domain frequency
   num_domains = split($domains_col, domain_list, /, */)
   for (i = 1; i <= num_domains; i++) {
     if (domain_list[i] != "") domains_freq[domain_list[i]]++
   }
-
   # Store Year Published and Rating Average for correlation
   if ($year_col != "" && $rating_col != "") {
     years[++year_index] = $year_col + 0
     ratings_year[year_index] = $rating_col + 0
   }
-
   # Store Complexity Average and Rating Average for correlation
   if ($complexity_col != "" && $rating_col != "") {
     complexity[++comp_index] = $complexity_col + 0
     ratings_comp[comp_index] = $rating_col + 0
   }
 }
-
 END {
   # --- Most popular mechanic ---
   most_mechanic = ""; max_mechanic_count = 0
@@ -79,7 +67,6 @@ END {
     }
   }
   printf("The most popular game mechanics is %s found in %d games\n", most_mechanic, max_mechanic_count)
-
   # --- Most popular domain ---
   most_domain = ""; max_domain_count = 0
   for (d in domains_freq) {
@@ -89,7 +76,6 @@ END {
     }
   }
   printf("The most game domain is %s found in %d games\n", most_domain, max_domain_count)
-
   # --- Correlation: Year Published vs Rating Average ---
   n = year_index
   sum_x = sum_y = sum_xy = sum_x2 = sum_y2 = 0
@@ -104,7 +90,6 @@ END {
   }
   correlation_year_rating = (n * sum_xy - sum_x * sum_y) / sqrt((n * sum_x2 - sum_x^2) * (n * sum_y2 - sum_y^2))
   printf("The correlation between the year of publication and the average rating is %.3f\n", correlation_year_rating)
-
   # --- Correlation: Complexity Average vs Rating Average ---
   n = comp_index
   sum_x = sum_y = sum_xy = sum_x2 = sum_y2 = 0
